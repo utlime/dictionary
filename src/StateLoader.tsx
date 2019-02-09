@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { Button, Col, Row } from "react-bootstrap";
+import { saveAs } from "file-saver";
 import {
   DictionaryAction,
   DictionaryActionType,
@@ -46,14 +47,11 @@ export function StateLoader(props: {
   };
 
   const handleSave = () => {
-    const a = document.createElement("a");
-    a.setAttribute(
-      "href",
-      "data:text/plain;charset=utf-u," +
-        encodeURIComponent(JSON.stringify(props.state))
+    saveAs(
+      new File([JSON.stringify(props.state)], "dictionary.json", {
+        type: "application/octet-stream"
+      })
     );
-    a.setAttribute("download", "dictionary.json");
-    a.click();
 
     props.dispatch({ type: DictionaryActionType.SAVED });
   };
