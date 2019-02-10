@@ -34,6 +34,7 @@ export function StateLoader(props: {
         const newState = JSON.parse(reader.result);
 
         props.dispatch({ type: DictionaryActionType.STATE, payload: newState });
+        props.dispatch({ type: DictionaryActionType.INIT });
       }
     };
 
