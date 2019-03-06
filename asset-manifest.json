@@ -1,11 +1,11 @@
 {
-  "main.js": "/dictionary/static/js/main.c9070d29.chunk.js",
-  "main.js.map": "/dictionary/static/js/main.c9070d29.chunk.js.map",
+  "main.js": "/dictionary/static/js/main.35b11677.chunk.js",
+  "main.js.map": "/dictionary/static/js/main.35b11677.chunk.js.map",
   "runtime~main.js": "/dictionary/static/js/runtime~main.25b4f36d.js",
   "runtime~main.js.map": "/dictionary/static/js/runtime~main.25b4f36d.js.map",
-  "static/js/2.67cd9067.chunk.js": "/dictionary/static/js/2.67cd9067.chunk.js",
-  "static/js/2.67cd9067.chunk.js.map": "/dictionary/static/js/2.67cd9067.chunk.js.map",
+  "static/js/2.3df0c6cf.chunk.js": "/dictionary/static/js/2.3df0c6cf.chunk.js",
+  "static/js/2.3df0c6cf.chunk.js.map": "/dictionary/static/js/2.3df0c6cf.chunk.js.map",
   "index.html": "/dictionary/index.html",
-  "precache-manifest.24cb6f23d3ebdf9af059f34f827f0f08.js": "/dictionary/precache-manifest.24cb6f23d3ebdf9af059f34f827f0f08.js",
+  "precache-manifest.ac16db1c907a23019470e61d8990a2a6.js": "/dictionary/precache-manifest.ac16db1c907a23019470e61d8990a2a6.js",
   "service-worker.js": "/dictionary/service-worker.js"
 }
