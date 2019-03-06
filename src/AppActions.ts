@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Action, ActionType, AppState } from "./AppState";
 import {
   addItem,
+  deleteItem,
   getDB,
   getItem,
   getItems,
@@ -23,6 +24,7 @@ export function useAppActions(
   }) => void;
   nextAction: (item: { id: string }) => void;
   selectAction: (item: { id: string }) => void;
+  deleteAction: (item: { id: string }) => void;
 } {
   const [dbPromise] = useState(getDB);
 
@@ -129,5 +131,25 @@ export function useAppActions(
     [dbPromise]
   );
 
-  return { searchAction, addAction, editAction, nextAction, selectAction };
+  const deleteAction = useCallback(
+    async ({ id }: { id: string }) => {
+      dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
+
+      await deleteItem(dbPromise, { id });
+      const item = (await getNextItem(dbPromise, { id })) || undefined;
+
+      dispatch({ type: ActionType.ITEM, payload: { item } });
+      dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
+    },
+    [dbPromise]
+  );
+
+  return {
+    searchAction,
+    addAction,
+    editAction,
+    nextAction,
+    selectAction,
+    deleteAction
+  };
 }

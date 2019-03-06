@@ -52,7 +52,7 @@ function reducer(state: AppState, action: Action) {
 }
 
 const initialState: AppState = {
-  isLoading: true,
+  isLoading: false,
   search: "",
   searchResult: []
 };

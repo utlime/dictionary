@@ -118,3 +118,15 @@ export async function getItems(
 
   return searchResult;
 }
+
+export async function deleteItem(
+  dbPromise: Promise<DB>,
+  { id }: { id: string }
+): Promise<void> {
+  const db = await dbPromise;
+  const transaction = db.transaction("dictionary", "readwrite");
+  const store = transaction.objectStore("dictionary");
+
+  await store.delete(id);
+  await transaction.complete;
+}
