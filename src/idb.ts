@@ -37,6 +37,29 @@ export async function addItem(
   return item;
 }
 
+export async function addItems(
+  dbPromise: Promise<DB>,
+  items: { id?: string; word: string; isKnown: boolean; description: string }[]
+): Promise<string[]> {
+  const db = await dbPromise;
+  const transaction = db.transaction("dictionary", "readwrite");
+  const store = transaction.objectStore("dictionary");
+
+  const ids = (await Promise.all(
+    items.map(item => {
+      if (item.id) {
+        return store.put(item);
+      } else {
+        return store.add(item);
+      }
+    })
+  )) as string[];
+
+  await transaction.complete;
+
+  return ids;
+}
+
 export async function updateItem(
   dbPromise: Promise<DB>,
   {
@@ -78,6 +101,16 @@ export async function getItem(
   await transaction.complete;
 
   return item;
+}
+
+export async function getAllItems(dbPromise: Promise<DB>): Promise<Item[]> {
+  const db = await dbPromise;
+  let transaction = db.transaction("dictionary", "readonly");
+  let store = transaction.objectStore("dictionary");
+  const items: Item[] = await store.getAll();
+  await transaction.complete;
+
+  return items;
 }
 
 export async function getNextItem(

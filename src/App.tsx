@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import {
   Col,
   Container,
@@ -16,16 +16,70 @@ import { useAppState, Item } from "./AppState";
 
 function Header(props: {
   word: string;
-  onAdd: (word: { word: string }) => void;
+  onAdd: (word: {
+    word: string;
+    description?: string;
+    isKnown?: boolean;
+  }) => void;
+  onLoad: (
+    words: {
+      word: string;
+      description?: string;
+      isKnown?: boolean;
+    }[]
+  ) => void;
   onSearch: (word: { word: string }) => void;
+  onDownload: () => void;
 }) {
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  const handleFiles = useCallback(() => {
+    if (fileInput.current == null) {
+      return;
+    }
+
+    const files = fileInput.current.files;
+    if (files == null) {
+      return;
+    }
+
+    const file = files.item(0);
+    if (file == null) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        props.onLoad(JSON.parse(reader.result));
+      }
+    };
+
+    reader.readAsText(file);
+  }, [fileInput]);
+
+  const handleLoad = () => {
+    if (fileInput.current != null) {
+      fileInput.current.click();
+    }
+  };
+
   return (
     <form
       onSubmit={e => {
         e.preventDefault();
-        props.onAdd({ word: props.word });
+        if (props.word.length > 0) {
+          props.onAdd({ word: props.word });
+        }
       }}
     >
+      <input
+        ref={fileInput}
+        type="file"
+        accept="application/json"
+        className="d-none"
+        onChange={handleFiles}
+      />
       <InputGroup className="mt-3 mb-3">
         <Form.Control
           value={props.word}
@@ -43,6 +97,21 @@ function Header(props: {
             add
           </Button>
         </InputGroup.Append>
+        <DropdownButton
+          as={InputGroup.Append}
+          variant="outline-secondary"
+          alignRight
+          title=""
+          size="lg"
+          id="app-header-options"
+        >
+          <Dropdown.Item href="#" onClick={handleLoad}>
+            Load from file
+          </Dropdown.Item>
+          <Dropdown.Item href="#" onClick={props.onDownload}>
+            Download words
+          </Dropdown.Item>
+        </DropdownButton>
       </InputGroup>
     </form>
   );
@@ -165,7 +234,9 @@ function App() {
     selectAction,
     editAction,
     nextAction,
-    deleteAction
+    deleteAction,
+    loadAction,
+    downloadAction
   } = useAppActions(state, dispatch);
 
   return (
@@ -176,6 +247,8 @@ function App() {
             word={state.search}
             onSearch={searchAction}
             onAdd={addAction}
+            onLoad={loadAction}
+            onDownload={downloadAction}
           />
           <SearchResult
             searchResult={state.searchResult}

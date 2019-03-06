@@ -2,21 +2,35 @@ import { useCallback, useEffect, useState } from "react";
 import { Action, ActionType, AppState } from "./AppState";
 import {
   addItem,
+  addItems,
   deleteItem,
   getDB,
   getItem,
   getItems,
   getNextItem,
-  updateItem
+  updateItem,
+  getAllItems
 } from "./idb";
 import { loadFromLocalStore, saveToLocalStore } from "./localStore";
+import { saveAs } from "file-saver";
 
 export function useAppActions(
   state: AppState,
   dispatch: (action: Action) => void
 ): {
   searchAction: (item: { word: string }) => void;
-  addAction: (item: { word: string }) => void;
+  addAction: (item: {
+    word: string;
+    description?: string;
+    isKnown?: boolean;
+  }) => void;
+  loadAction: (
+    items: {
+      word: string;
+      description?: string;
+      isKnown?: boolean;
+    }[]
+  ) => void;
   editAction: (item: {
     id: string;
     isKnown?: boolean;
@@ -25,6 +39,7 @@ export function useAppActions(
   nextAction: (item: { id: string }) => void;
   selectAction: (item: { id: string }) => void;
   deleteAction: (item: { id: string }) => void;
+  downloadAction: () => void;
 } {
   const [dbPromise] = useState(getDB);
 
@@ -43,11 +58,8 @@ export function useAppActions(
   }, [state]);
 
   const addAction = useCallback(
-    async ({ word }) => {
+    async ({ word, description = "", isKnown = false }) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
-
-      const isKnown = false;
-      const description = "";
 
       const item = await addItem(dbPromise, { word, isKnown, description });
 
@@ -61,6 +73,39 @@ export function useAppActions(
     },
     [dbPromise]
   );
+
+  const loadAction = useCallback(
+    async (
+      items: { word: string; description?: string; isKnown?: boolean }[]
+    ) => {
+      dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
+
+      await addItems(
+        dbPromise,
+        items.map(({ word, description, isKnown }) => ({
+          word,
+          description: description || "",
+          isKnown: isKnown != null ? isKnown : false
+        }))
+      );
+
+      dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
+    },
+    [dbPromise]
+  );
+
+  const downloadAction = useCallback(async () => {
+    dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
+
+    const items = await getAllItems(dbPromise);
+    const blob = new File([JSON.stringify(items)], "dictionary.json", {
+      type: "application/json"
+    });
+
+    saveAs(blob, "dictionary.json");
+
+    dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
+  }, [dbPromise]);
 
   const editAction = useCallback(
     async ({
@@ -150,6 +195,8 @@ export function useAppActions(
     editAction,
     nextAction,
     selectAction,
-    deleteAction
+    deleteAction,
+    loadAction,
+    downloadAction
   };
 }
