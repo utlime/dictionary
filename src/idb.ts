@@ -145,7 +145,7 @@ export async function getItems(
   const store = transaction.objectStore("dictionary");
   const searchResult: Item[] = await store
     .index("word")
-    .getAll(IDBKeyRange.only(word));
+    .getAll(IDBKeyRange.bound(word, `${word}zzz`), 25);
 
   await transaction.complete;
 

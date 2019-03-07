@@ -84,7 +84,7 @@ function Header(props: {
         <Form.Control
           value={props.word}
           size="lg"
-          placeholder="Search or add new"
+          placeholder="Search or add new word"
           // @ts-ignore
           onChange={(e: Event) => {
             if (e.target instanceof HTMLInputElement) {
@@ -106,7 +106,7 @@ function Header(props: {
           id="app-header-options"
         >
           <Dropdown.Item href="#" onClick={handleLoad}>
-            Load from file
+            Upload words
           </Dropdown.Item>
           <Dropdown.Item href="#" onClick={props.onDownload}>
             Download words
@@ -125,7 +125,11 @@ function SearchResult(props: {
   return (
     <React.Fragment>
       {props.searchResult.map(item => (
-        <Card className="mt-3 mb-3">
+        <Card
+          key={item.id}
+          className={`mt-3 mb-3 ${item.isKnown ? "border-success" : ""}`}
+        >
+          <Card.Header>Card #{item.id}</Card.Header>
           <Card.Body>
             <Card.Title>{item.word}</Card.Title>
             {item.description !== "" ? (
@@ -165,6 +169,7 @@ function ItemView(props: {
 }) {
   return (
     <Card className="mt-3 mb-3">
+      <Card.Header>Card #{props.item.id}</Card.Header>
       <Card.Body>
         <Card.Title>{props.item.word}</Card.Title>
         <Form.Control
@@ -181,7 +186,9 @@ function ItemView(props: {
             props.onChange({ id: props.item.id, description });
           }}
         />
-        <ButtonGroup className="mt-3 w-100">
+      </Card.Body>
+      <Card.Footer>
+        <ButtonGroup className="w-100">
           <Button
             variant={props.item.isKnown ? "success" : "primary"}
             size="lg"
@@ -221,7 +228,7 @@ function ItemView(props: {
             </Dropdown.Item>
           </DropdownButton>
         </ButtonGroup>
-      </Card.Body>
+      </Card.Footer>
     </Card>
   );
 }
