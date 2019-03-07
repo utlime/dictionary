@@ -141,13 +141,26 @@ export async function getItems(
   { word }: { word: string }
 ): Promise<Item[]> {
   const db = await dbPromise;
-  const transaction = db.transaction("dictionary", "readonly");
-  const store = transaction.objectStore("dictionary");
-  const searchResult: Item[] = await store
+
+  const searchResult: Item[] = await db
+    .transaction("dictionary", "readonly")
+    .objectStore("dictionary")
     .index("word")
     .getAll(IDBKeyRange.bound(word, `${word}zzz`), 25);
 
-  await transaction.complete;
+  if (searchResult.length === 0) {
+    const id = parseInt(word, 10);
+    if (Number.isInteger(id)) {
+      const searchByKey = await db
+        .transaction("dictionary", "readonly")
+        .objectStore("dictionary")
+        .get(parseInt(word, 10));
+
+      if (searchByKey) {
+        searchResult.unshift(searchByKey);
+      }
+    }
+  }
 
   return searchResult;
 }
