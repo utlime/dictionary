@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Action, ActionType, AppState } from "./AppState";
+import { AppAction, ActionType, AppState, Item } from "./AppState";
 import {
   addItem,
   addItems,
@@ -14,32 +14,42 @@ import {
 import { loadFromLocalStore, saveToLocalStore } from "./localStore";
 import { saveAs } from "file-saver";
 
+export type SearchAction = (search: { search: string }) => void;
+
+export type AddAction = (
+  item: Pick<Item, "word"> & Partial<Pick<Item, "description" | "isKnown">>
+) => void;
+
+export type UploadAction = (
+  items: (Pick<Item, "word"> &
+    Partial<Pick<Item, "description" | "isKnown" | "id">>)[]
+) => void;
+
+export type EditAction = (
+  item: Pick<Item, "id"> &
+    Partial<Pick<Item, "isKnown" | "description" | "word">>
+) => void;
+
+export type NextAction = (item: Pick<Item, "id">) => void;
+
+export type SelectAction = (item: Pick<Item, "id">) => void;
+
+export type DeleteAction = (item: Pick<Item, "id">) => void;
+
+export type DownloadAction = () => void;
+
 export function useAppActions(
   state: AppState,
-  dispatch: (action: Action) => void
+  dispatch: AppAction
 ): {
-  searchAction: (item: { word: string }) => void;
-  addAction: (item: {
-    word: string;
-    description?: string;
-    isKnown?: boolean;
-  }) => void;
-  loadAction: (
-    items: {
-      word: string;
-      description?: string;
-      isKnown?: boolean;
-    }[]
-  ) => void;
-  editAction: (item: {
-    id: string;
-    isKnown?: boolean;
-    description?: string;
-  }) => void;
-  nextAction: (item: { id: string }) => void;
-  selectAction: (item: { id: string }) => void;
-  deleteAction: (item: { id: string }) => void;
-  downloadAction: () => void;
+  searchAction: SearchAction;
+  addAction: AddAction;
+  loadAction: UploadAction;
+  editAction: EditAction;
+  nextAction: NextAction;
+  selectAction: SelectAction;
+  deleteAction: DeleteAction;
+  downloadAction: DownloadAction;
 } {
   const [dbPromise] = useState(getDB);
 
@@ -57,8 +67,12 @@ export function useAppActions(
     saveToLocalStore(state);
   }, [state]);
 
-  const addAction = useCallback(
-    async ({ word, description = "", isKnown = false }) => {
+  const addAction: AddAction = useCallback(
+    async ({
+      word,
+      description = "",
+      isKnown = false
+    }: Pick<Item, "word"> & Partial<Pick<Item, "description" | "isKnown">>) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
       const item = await addItem(dbPromise, { word, isKnown, description });
@@ -74,9 +88,10 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const loadAction = useCallback(
+  const loadAction: UploadAction = useCallback(
     async (
-      items: { word: string; description?: string; isKnown?: boolean }[]
+      items: (Pick<Item, "word"> &
+        Partial<Pick<Item, "description" | "isKnown">>)[]
     ) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
@@ -94,7 +109,7 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const downloadAction = useCallback(async () => {
+  const downloadAction: DownloadAction = useCallback(async () => {
     dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
     const items = await getAllItems(dbPromise);
@@ -107,19 +122,22 @@ export function useAppActions(
     dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
   }, [dbPromise]);
 
-  const editAction = useCallback(
+  const editAction: EditAction = useCallback(
     async ({
       isKnown,
       description,
+      word,
       id
-    }: {
-      isKnown?: boolean;
-      description?: string;
-      id: string;
-    }) => {
+    }: Pick<Item, "id"> &
+      Partial<Pick<Item, "isKnown" | "description" | "word">>) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
-      const item = await updateItem(dbPromise, { isKnown, description, id });
+      const item = await updateItem(dbPromise, {
+        isKnown,
+        description,
+        id,
+        word
+      });
 
       dispatch({ type: ActionType.ITEM, payload: { item } });
       dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
@@ -127,8 +145,8 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const nextAction = useCallback(
-    async ({ id }: { id: string }) => {
+  const nextAction: NextAction = useCallback(
+    async ({ id }: Pick<Item, "id">) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
       const item = await getNextItem(dbPromise, { id });
@@ -142,13 +160,25 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const searchAction = useCallback(
-    async ({ word }) => {
+  const searchAction: SearchAction = useCallback(
+    async ({ search }: { search: string }) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
-      dispatch({ type: ActionType.SEARCH, payload: { search: word } });
+      dispatch({ type: ActionType.SEARCH, payload: { search } });
       dispatch({ type: ActionType.ITEM, payload: {} });
 
-      const searchResult = await getItems(dbPromise, { word });
+      let word;
+      let id;
+
+      if (search[0] === "#") {
+        const tmpId = Number.parseInt(search.slice(1), 10);
+        if (!Number.isNaN(tmpId)) {
+          id = tmpId;
+        }
+      } else {
+        word = search;
+      }
+
+      const searchResult = await getItems(dbPromise, { word, id });
 
       dispatch({ type: ActionType.SEARCH_RESULT, payload: { searchResult } });
       dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
@@ -156,8 +186,8 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const selectAction = useCallback(
-    async ({ id }: { id: string }) => {
+  const selectAction: SelectAction = useCallback(
+    async ({ id }: Pick<Item, "id">) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
       const item = await getItem(dbPromise, { id });
@@ -176,8 +206,8 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const deleteAction = useCallback(
-    async ({ id }: { id: string }) => {
+  const deleteAction: DeleteAction = useCallback(
+    async ({ id }: Pick<Item, "id">) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
       await deleteItem(dbPromise, { id });

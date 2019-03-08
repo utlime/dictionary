@@ -1,7 +1,7 @@
 import { useReducer } from "react";
 
 export interface Item {
-  id: string;
+  id: number;
   word: string;
   description: string;
   isKnown: boolean;
@@ -22,11 +22,11 @@ export enum ActionType {
   LOADING
 }
 
-export type Action =
-  | { type: ActionType.SEARCH; payload: { search: string } }
-  | { type: ActionType.SEARCH_RESULT; payload: { searchResult: Item[] } }
-  | { type: ActionType.ITEM; payload: { item?: Item } }
-  | { type: ActionType.LOADING; payload: { isLoading: boolean } }
+type Action =
+  | { type: ActionType.SEARCH; payload: Pick<AppState, "search"> }
+  | { type: ActionType.SEARCH_RESULT; payload: Pick<AppState, "searchResult"> }
+  | { type: ActionType.ITEM; payload: Pick<AppState, "item"> }
+  | { type: ActionType.LOADING; payload: Pick<AppState, "isLoading"> }
   | { type: ActionType.INIT; payload: { state: AppState } };
 
 function reducer(state: AppState, action: Action) {
@@ -34,17 +34,11 @@ function reducer(state: AppState, action: Action) {
     case ActionType.INIT: {
       return action.payload.state;
     }
-    case ActionType.SEARCH: {
-      return { ...state, search: action.payload.search };
-    }
-    case ActionType.SEARCH_RESULT: {
-      return { ...state, searchResult: action.payload.searchResult };
-    }
-    case ActionType.ITEM: {
-      return { ...state, item: action.payload.item };
-    }
+    case ActionType.SEARCH:
+    case ActionType.SEARCH_RESULT:
+    case ActionType.ITEM:
     case ActionType.LOADING: {
-      return { ...state, isLoading: action.payload.isLoading };
+      return { ...state, ...action.payload };
     }
   }
 
@@ -57,7 +51,9 @@ const initialState: AppState = {
   searchResult: []
 };
 
-export function useAppState(): [AppState, (action: Action) => void] {
+export type AppAction = (action: Action) => void;
+
+export function useAppState(): [AppState, AppAction] {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return [state, dispatch];

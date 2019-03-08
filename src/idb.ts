@@ -18,28 +18,23 @@ export function getDB(): Promise<DB> {
 
 export async function addItem(
   dbPromise: Promise<DB>,
-  {
-    word,
-    isKnown,
-    description
-  }: { word: string; isKnown: boolean; description: string }
+  item: Pick<Item, "word" | "description" | "isKnown">
 ): Promise<Item> {
   const db = await dbPromise;
   const transaction = db.transaction("dictionary", "readwrite");
   const store = transaction.objectStore("dictionary");
 
-  const id = (await store.add({ word, isKnown, description })) as string;
+  const id = (await store.add(item)) as number;
 
   await transaction.complete;
 
-  const item: Item = { id, word, description, isKnown };
-
-  return item;
+  return { ...item, id };
 }
 
 export async function addItems(
   dbPromise: Promise<DB>,
-  items: { id?: string; word: string; isKnown: boolean; description: string }[]
+  items: (Pick<Item, "word" | "description" | "isKnown"> &
+    Partial<Pick<Item, "id">>)[]
 ): Promise<string[]> {
   const db = await dbPromise;
   const transaction = db.transaction("dictionary", "readwrite");
@@ -47,7 +42,7 @@ export async function addItems(
 
   const ids = (await Promise.all(
     items.map(item => {
-      if (item.id) {
+      if (item.id != null) {
         return store.put(item);
       } else {
         return store.add(item);
@@ -65,8 +60,9 @@ export async function updateItem(
   {
     isKnown,
     description,
+    word,
     id
-  }: { id: string; description?: string; isKnown?: boolean }
+  }: Partial<Pick<Item, "word" | "description" | "isKnown">> & Pick<Item, "id">
 ): Promise<Item> {
   const db = await dbPromise;
   let transaction = db.transaction("dictionary", "readonly");
@@ -82,6 +78,10 @@ export async function updateItem(
     item.description = description;
   }
 
+  if (typeof word === "string") {
+    item.word = word;
+  }
+
   transaction = db.transaction("dictionary", "readwrite");
   store = transaction.objectStore("dictionary");
   await store.put(item);
@@ -92,7 +92,7 @@ export async function updateItem(
 
 export async function getItem(
   dbPromise: Promise<DB>,
-  { id }: { id: string }
+  { id }: Pick<Item, "id">
 ): Promise<Item | null> {
   const db = await dbPromise;
   let transaction = db.transaction("dictionary", "readonly");
@@ -115,7 +115,7 @@ export async function getAllItems(dbPromise: Promise<DB>): Promise<Item[]> {
 
 export async function getNextItem(
   dbPromise: Promise<DB>,
-  { id }: { id: string }
+  { id }: Pick<Item, "id">
 ): Promise<Item | null> {
   const db = await dbPromise;
   const transaction = db.transaction("dictionary", "readonly");
@@ -138,28 +138,31 @@ export async function getNextItem(
 
 export async function getItems(
   dbPromise: Promise<DB>,
-  { word }: { word: string }
+  { word, id }: Partial<Pick<Item, "id" | "word">>
 ): Promise<Item[]> {
   const db = await dbPromise;
 
-  const searchResult: Item[] = await db
-    .transaction("dictionary", "readonly")
-    .objectStore("dictionary")
-    .index("word")
-    .getAll(IDBKeyRange.bound(word, `${word}zzz`), 25);
+  const searchResult: Item[] = [];
 
-  if (searchResult.length === 0) {
-    const id = parseInt(word, 10);
-    if (Number.isInteger(id)) {
-      const searchByKey = await db
+  if (id != null) {
+    const searchByKey = await db
+      .transaction("dictionary", "readonly")
+      .objectStore("dictionary")
+      .get(id);
+
+    if (searchByKey) {
+      searchResult.push(searchByKey);
+    }
+  }
+
+  if (word != null) {
+    searchResult.push(
+      ...(await db
         .transaction("dictionary", "readonly")
         .objectStore("dictionary")
-        .get(parseInt(word, 10));
-
-      if (searchByKey) {
-        searchResult.unshift(searchByKey);
-      }
-    }
+        .index("word")
+        .getAll(IDBKeyRange.bound(word, `${word}zzz`), 25))
+    );
   }
 
   return searchResult;
@@ -167,7 +170,7 @@ export async function getItems(
 
 export async function deleteItem(
   dbPromise: Promise<DB>,
-  { id }: { id: string }
+  { id }: Pick<Item, "id">
 ): Promise<void> {
   const db = await dbPromise;
   const transaction = db.transaction("dictionary", "readwrite");
