@@ -1,11 +1,11 @@
 {
-  "main.js": "/dictionary/static/js/main.a013f93d.chunk.js",
-  "main.js.map": "/dictionary/static/js/main.a013f93d.chunk.js.map",
+  "main.js": "/dictionary/static/js/main.ffdccdec.chunk.js",
+  "main.js.map": "/dictionary/static/js/main.ffdccdec.chunk.js.map",
   "runtime~main.js": "/dictionary/static/js/runtime~main.25b4f36d.js",
   "runtime~main.js.map": "/dictionary/static/js/runtime~main.25b4f36d.js.map",
-  "static/js/2.3df0c6cf.chunk.js": "/dictionary/static/js/2.3df0c6cf.chunk.js",
-  "static/js/2.3df0c6cf.chunk.js.map": "/dictionary/static/js/2.3df0c6cf.chunk.js.map",
+  "static/js/2.65c09a8f.chunk.js": "/dictionary/static/js/2.65c09a8f.chunk.js",
+  "static/js/2.65c09a8f.chunk.js.map": "/dictionary/static/js/2.65c09a8f.chunk.js.map",
   "index.html": "/dictionary/index.html",
-  "precache-manifest.0c0ad8c5bbf7900f33d1e08e49301837.js": "/dictionary/precache-manifest.0c0ad8c5bbf7900f33d1e08e49301837.js",
+  "precache-manifest.9a2d5346539bed1c4d1a3db12754545b.js": "/dictionary/precache-manifest.9a2d5346539bed1c4d1a3db12754545b.js",
   "service-worker.js": "/dictionary/service-worker.js"
 }
