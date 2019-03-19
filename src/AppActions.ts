@@ -44,7 +44,7 @@ export function useAppActions(
 ): {
   searchAction: SearchAction;
   addAction: AddAction;
-  loadAction: UploadAction;
+  uploadAction: UploadAction;
   editAction: EditAction;
   nextAction: NextAction;
   selectAction: SelectAction;
@@ -88,7 +88,7 @@ export function useAppActions(
     [dbPromise]
   );
 
-  const loadAction: UploadAction = useCallback(
+  const uploadAction: UploadAction = useCallback(
     async (
       items: (Pick<Item, "word"> &
         Partial<Pick<Item, "description" | "isKnown">>)[]
@@ -226,7 +226,7 @@ export function useAppActions(
     nextAction,
     selectAction,
     deleteAction,
-    loadAction,
+    uploadAction,
     downloadAction
   };
 }

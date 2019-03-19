@@ -1,10 +1,8 @@
 import React, { useCallback, useRef } from "react";
 import {
-  Col,
   Container,
   Form,
   InputGroup,
-  Row,
   Button,
   Card,
   DropdownButton,
@@ -22,7 +20,7 @@ import {
   SelectAction,
   useAppActions
 } from "./AppActions";
-import { useAppState, Item, AppState } from "./AppState";
+import { useAppState, AppState } from "./AppState";
 
 function Header(
   props: Pick<AppState, "search"> & {
@@ -248,37 +246,33 @@ function App() {
     editAction,
     nextAction,
     deleteAction,
-    loadAction,
+    uploadAction,
     downloadAction
   } = useAppActions(state, dispatch);
 
   return (
     <Container>
-      <Row className="justify-content-md-center">
-        <Col md="7">
-          <Header
-            search={state.search}
-            onSearch={searchAction}
-            onAdd={addAction}
-            onLoad={loadAction}
-            onDownload={downloadAction}
-          />
-          <SearchResult
-            searchResult={state.searchResult}
-            search={state.search}
-            onSelect={selectAction}
-          />
-          <ItemView
-            item={state.item}
-            onChange={editAction}
-            onNext={nextAction}
-            onDelete={deleteAction}
-          />
-          <span style={{ display: state.isLoading ? "block" : "none" }}>
-            loading ...
-          </span>
-        </Col>
-      </Row>
+      <Header
+        search={state.search}
+        onSearch={searchAction}
+        onAdd={addAction}
+        onLoad={uploadAction}
+        onDownload={downloadAction}
+      />
+      <SearchResult
+        searchResult={state.searchResult}
+        search={state.search}
+        onSelect={selectAction}
+      />
+      <ItemView
+        item={state.item}
+        onChange={editAction}
+        onNext={nextAction}
+        onDelete={deleteAction}
+      />
+      <span style={{ display: state.isLoading ? "block" : "none" }}>
+        loading ...
+      </span>
     </Container>
   );
 }
