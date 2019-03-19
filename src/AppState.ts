@@ -1,5 +1,9 @@
 import { useReducer } from "react";
 
+export interface AppStatistic {
+  total: number;
+}
+
 export interface Item {
   id: number;
   word: string;
@@ -12,6 +16,7 @@ export interface AppState {
   search: string;
   searchResult: Item[];
   item?: Item;
+  statistic: AppStatistic;
 }
 
 export enum ActionType {
@@ -19,10 +24,12 @@ export enum ActionType {
   SEARCH,
   SEARCH_RESULT,
   ITEM,
-  LOADING
+  LOADING,
+  STATISTIC,
 }
 
 type Action =
+  | { type: ActionType.STATISTIC; payload: Partial<AppStatistic> }
   | { type: ActionType.SEARCH; payload: Pick<AppState, "search"> }
   | { type: ActionType.SEARCH_RESULT; payload: Pick<AppState, "searchResult"> }
   | { type: ActionType.ITEM; payload: Pick<AppState, "item"> }
@@ -32,7 +39,13 @@ type Action =
 function reducer(state: AppState, action: Action) {
   switch (action.type) {
     case ActionType.INIT: {
-      return action.payload.state;
+      return { ...state, ...action.payload.state };
+    }
+    case ActionType.STATISTIC: {
+      return {
+        ...state,
+        statistic: { ...state.statistic, ...action.payload },
+      };
     }
     case ActionType.SEARCH:
     case ActionType.SEARCH_RESULT:
@@ -48,7 +61,8 @@ function reducer(state: AppState, action: Action) {
 const initialState: AppState = {
   isLoading: false,
   search: "",
-  searchResult: []
+  searchResult: [],
+  statistic: { total: 0 },
 };
 
 export type AppAction = (action: Action) => void;

@@ -7,7 +7,7 @@ export function getDB(): Promise<DB> {
       case 0:
         upgradeDB.createObjectStore("dictionary", {
           keyPath: "id",
-          autoIncrement: true
+          autoIncrement: true,
         });
       case 1:
         const store = upgradeDB.transaction.objectStore("dictionary");
@@ -61,7 +61,7 @@ export async function updateItem(
     isKnown,
     description,
     word,
-    id
+    id,
   }: Partial<Pick<Item, "word" | "description" | "isKnown">> & Pick<Item, "id">
 ): Promise<Item> {
   const db = await dbPromise;
@@ -178,4 +178,13 @@ export async function deleteItem(
 
   await store.delete(id);
   await transaction.complete;
+}
+
+export async function getTotal(dbPromise: Promise<DB>) {
+  const db = await dbPromise;
+
+  return db
+    .transaction("dictionary", "readonly")
+    .objectStore("dictionary")
+    .count();
 }

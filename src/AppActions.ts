@@ -9,7 +9,8 @@ import {
   getItems,
   getNextItem,
   updateItem,
-  getAllItems
+  getAllItems,
+  getTotal,
 } from "./idb";
 import { loadFromLocalStore, saveToLocalStore } from "./localStore";
 import { saveAs } from "file-saver";
@@ -58,7 +59,7 @@ export function useAppActions(
     if (savedState != null) {
       dispatch({
         type: ActionType.INIT,
-        payload: { state: savedState }
+        payload: { state: savedState },
       });
     }
   }, []);
@@ -71,18 +72,20 @@ export function useAppActions(
     async ({
       word,
       description = "",
-      isKnown = false
+      isKnown = false,
     }: Pick<Item, "word"> & Partial<Pick<Item, "description" | "isKnown">>) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
 
       const item = await addItem(dbPromise, { word, isKnown, description });
+      const total = await getTotal(dbPromise);
 
       dispatch({ type: ActionType.ITEM, payload: { item } });
       dispatch({ type: ActionType.SEARCH, payload: { search: "" } });
       dispatch({
         type: ActionType.SEARCH_RESULT,
-        payload: { searchResult: [] }
+        payload: { searchResult: [] },
       });
+      dispatch({ type: ActionType.STATISTIC, payload: { total } });
       dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
     },
     [dbPromise]
@@ -100,10 +103,12 @@ export function useAppActions(
         items.map(({ word, description, isKnown }) => ({
           word,
           description: description || "",
-          isKnown: isKnown != null ? isKnown : false
+          isKnown: isKnown != null ? isKnown : false,
         }))
       );
+      const total = await getTotal(dbPromise);
 
+      dispatch({ type: ActionType.STATISTIC, payload: { total } });
       dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
     },
     [dbPromise]
@@ -114,7 +119,7 @@ export function useAppActions(
 
     const items = await getAllItems(dbPromise);
     const blob = new File([JSON.stringify(items)], "dictionary.json", {
-      type: "application/json"
+      type: "application/json",
     });
 
     saveAs(blob, "dictionary.json");
@@ -127,7 +132,7 @@ export function useAppActions(
       isKnown,
       description,
       word,
-      id
+      id,
     }: Pick<Item, "id"> &
       Partial<Pick<Item, "isKnown" | "description" | "word">>) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
@@ -136,7 +141,7 @@ export function useAppActions(
         isKnown,
         description,
         id,
-        word
+        word,
       });
 
       dispatch({ type: ActionType.ITEM, payload: { item } });
@@ -199,7 +204,7 @@ export function useAppActions(
       dispatch({ type: ActionType.SEARCH, payload: { search: "" } });
       dispatch({
         type: ActionType.SEARCH_RESULT,
-        payload: { searchResult: [] }
+        payload: { searchResult: [] },
       });
       dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
     },
@@ -212,7 +217,9 @@ export function useAppActions(
 
       await deleteItem(dbPromise, { id });
       const item = (await getNextItem(dbPromise, { id })) || undefined;
+      const total = await getTotal(dbPromise);
 
+      dispatch({ type: ActionType.STATISTIC, payload: { total } });
       dispatch({ type: ActionType.ITEM, payload: { item } });
       dispatch({ type: ActionType.LOADING, payload: { isLoading: false } });
     },
@@ -227,6 +234,6 @@ export function useAppActions(
     selectAction,
     deleteAction,
     uploadAction,
-    downloadAction
+    downloadAction,
   };
 }

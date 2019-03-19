@@ -7,7 +7,7 @@ import {
   Card,
   DropdownButton,
   ButtonGroup,
-  Dropdown
+  Dropdown,
 } from "react-bootstrap";
 import {
   AddAction,
@@ -18,9 +18,9 @@ import {
   NextAction,
   SearchAction,
   SelectAction,
-  useAppActions
+  useAppActions,
 } from "./AppActions";
-import { useAppState, AppState } from "./AppState";
+import { useAppState, AppState, AppStatistic } from "./AppState";
 
 function Header(
   props: Pick<AppState, "search"> & {
@@ -199,7 +199,7 @@ function ItemView(
             onClick={() => {
               props.onChange({
                 id: item.id,
-                isKnown: !item.isKnown
+                isKnown: !item.isKnown,
               });
             }}
           >
@@ -237,6 +237,14 @@ function ItemView(
   );
 }
 
+function Statistic(props: { statistic: AppStatistic }) {
+  return (
+    <ul>
+      <li>Total: {props.statistic.total}</li>
+    </ul>
+  );
+}
+
 function App() {
   const [state, dispatch] = useAppState();
   const {
@@ -247,7 +255,7 @@ function App() {
     nextAction,
     deleteAction,
     uploadAction,
-    downloadAction
+    downloadAction,
   } = useAppActions(state, dispatch);
 
   return (
@@ -270,6 +278,7 @@ function App() {
         onNext={nextAction}
         onDelete={deleteAction}
       />
+      <Statistic statistic={state.statistic} />
       <span style={{ display: state.isLoading ? "block" : "none" }}>
         loading ...
       </span>
