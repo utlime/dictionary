@@ -169,7 +169,7 @@ export function useAppActions(
     async ({ search }: { search: string }) => {
       dispatch({ type: ActionType.LOADING, payload: { isLoading: true } });
       dispatch({ type: ActionType.SEARCH, payload: { search } });
-      dispatch({ type: ActionType.ITEM, payload: {} });
+      dispatch({ type: ActionType.ITEM, payload: { item: undefined } });
 
       let word;
       let id;
